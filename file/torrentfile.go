@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"io"
 
-	// "file/test"
-
 	"github.com/jackpal/bencode-go"
 )
 
@@ -54,7 +52,7 @@ func (i *bencodeInfo) hash() ([20]byte, error) {
 }
 
 func (i *bencodeInfo) splitPieceHashes() ([][20]byte, error) {
-	hashLen := 20 // Length of SHA-1 hash
+	hashLen := 20
 	buf := []byte(i.Pieces)
 	if len(buf)%hashLen != 0 {
 		err := fmt.Errorf("Received malformed pieces of length %d", len(buf))
