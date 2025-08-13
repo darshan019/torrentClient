@@ -3,13 +3,14 @@ package main
 import (
 	"crypto/rand"
 	"fmt"
+	"log"
+
+	// "log"
 	"os"
 	"torrentClient/file"
 )
 
 func main() {
-	fmt.Println("hello")
-
 	f, err := os.Open("debian.torrent")
 	if err != nil {
 		panic(err)
@@ -47,9 +48,29 @@ func main() {
 	fmt.Println("Tracker URL: ")
 	fmt.Println(trackerURL)
 
-	peersFound, err := torrent.RequestPeers(peerID, 6881)
+	// peersFound, err := torrent.RequestPeers(peerID, 6881)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// fmt.Println("Peers:", peersFound)
+
+	outPath := os.Args[1]
+	err = torrent.DownloadToFile(outPath)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
-	fmt.Println("Peers:", peersFound)
+
+	// inPath := os.Args[1]
+	// outPath := os.Args[2]
+
+	// tf, err := file.Open(inPath)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+
+	// err = tf.DownloadToFile(outPath)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+
 }

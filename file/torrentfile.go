@@ -2,12 +2,17 @@ package file
 
 import (
 	"bytes"
+	"crypto/rand"
 	"crypto/sha1"
 	"fmt"
 	"io"
+	"os"
+	"torrentClient/p2p"
 
 	"github.com/jackpal/bencode-go"
 )
+
+const Port uint16 = 6881
 
 type TorrentFile struct {
 	Announce    string
@@ -28,6 +33,47 @@ type bencodeInfo struct {
 type bencodeTorrent struct {
 	Announce string      `bencode:"announce"`
 	Info     bencodeInfo `bencode:"info"`
+}
+
+func (t *TorrentFile) DownloadToFile(path string) error {
+	var peerID [20]byte
+	_, err := rand.Read(peerID[:])
+	if err != nil {
+		return err
+	}
+
+	peers, err := t.RequestPeers(peerID, Port)
+	if err != nil {
+		return err
+	}
+
+	torrent := p2p.Torrent{
+		Peers:       peers,
+		PeerID:      peerID,
+		InfoHash:    t.InfoHash,
+		PieceHashes: t.PieceHashes,
+		PieceLength: t.PieceLength,
+		Length:      t.Length,
+		Name:        t.Name,
+	}
+
+	buf, err := torrent.Download()
+	if err != nil {
+		return err
+	}
+
+	outFile, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+
+	defer outFile.Close()
+	_, err = outFile.Write(buf)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func Open(r io.Reader) (*bencodeTorrent, error) {
@@ -51,11 +97,11 @@ func (i *bencodeInfo) hash() ([20]byte, error) {
 	return h, nil
 }
 
-func (i *bencodeInfo) splitPieceHashes() ([][20]byte, error) {
+func (i *bencodeInfo) splitPieceHashes() ([][20]byte, error) { // Each hash piece will be 20 bytes in length
 	hashLen := 20
 	buf := []byte(i.Pieces)
 	if len(buf)%hashLen != 0 {
-		err := fmt.Errorf("Received malformed pieces of length %d", len(buf))
+		err := fmt.Errorf("received malformed pieces of length %d", len(buf))
 		return nil, err
 	}
 	numHashes := len(buf) / hashLen

@@ -42,7 +42,7 @@ func (t *TorrentFile) RequestPeers(peerID [20]byte, port uint16) ([]peers.Peer, 
 		return nil, err
 	}
 
-	fmt.Println("URRL:", t.Announce)
+	fmt.Println("URL:", t.Announce)
 
 	c := &http.Client{Timeout: 15 * time.Second}
 	res, err := c.Get(url)
