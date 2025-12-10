@@ -27,13 +27,6 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println("Announce URL:", torrent.Announce)
-	fmt.Println("File Name:", torrent.Name)
-	fmt.Println("File Length:", torrent.Length)
-	fmt.Println("Piece Length:", torrent.PieceLength)
-	fmt.Println("Info Hash:", torrent.InfoHash)
-	fmt.Println("Number of Pieces:", len(torrent.PieceHashes))
-
 	var peerID [20]byte
 	_, err = rand.Read(peerID[:])
 	if err != nil {
@@ -48,29 +41,10 @@ func main() {
 	fmt.Println("Tracker URL: ")
 	fmt.Println(trackerURL)
 
-	// peersFound, err := torrent.RequestPeers(peerID, 6881)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// fmt.Println("Peers:", peersFound)
-
 	outPath := os.Args[1]
 	err = torrent.DownloadToFile(outPath)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// inPath := os.Args[1]
-	// outPath := os.Args[2]
-
-	// tf, err := file.Open(inPath)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	// err = tf.DownloadToFile(outPath)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
 
 }
