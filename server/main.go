@@ -21,7 +21,6 @@ func uploadTorrent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Limit request size to avoid abuse (10MB here)
 	r.Body = http.MaxBytesReader(w, r.Body, 10<<20)
 
 	err := r.ParseMultipartForm(10 << 20)
@@ -37,13 +36,11 @@ func uploadTorrent(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	// Allow only .torrent files
 	if filepath.Ext(handler.Filename) != ".torrent" {
 		http.Error(w, "Only .torrent files allowed", http.StatusBadRequest)
 		return
 	}
 
-	// Create uploads directory if not exists
 	err = os.MkdirAll(uploadDir, 0755)
 	if err != nil {
 		http.Error(w, "Server error", http.StatusInternalServerError)
