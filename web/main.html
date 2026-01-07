@@ -26,7 +26,7 @@
         box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6);
       }
       h1 {
-        margin: 0 0 8px 0;
+        margin: 0 0 6px 0;
         font-size: 1.4rem;
       }
       p {
@@ -39,16 +39,16 @@
         font-size: 0.85rem;
         margin-bottom: 6px;
       }
-      input[type="file"] {
+      input {
         width: 100%;
         padding: 8px;
         border-radius: 8px;
         border: 1px solid rgba(156, 163, 175, 0.6);
         background: #020617;
         color: #f5f5f5;
+        margin-bottom: 14px;
       }
       button {
-        margin-top: 16px;
         width: 100%;
         padding: 10px;
         border-radius: 999px;
@@ -65,7 +65,7 @@
       }
       .status {
         margin-top: 16px;
-        padding: 10px;
+        padding: 12px;
         border-radius: 10px;
         background: rgba(15, 23, 42, 0.9);
         border: 1px solid rgba(148, 163, 184, 0.4);
@@ -78,12 +78,17 @@
       .error {
         color: #fecaca;
       }
+      .health {
+        margin-top: 8px;
+        font-weight: 600;
+      }
     </style>
   </head>
+
   <body>
     <div class="card">
       <h1>Go Torrent Client</h1>
-      <p>Upload a <strong>.torrent</strong> file to the Go backend.</p>
+      <p>Upload a <strong>.torrent</strong> file and analyze its health.</p>
 
       <form id="upload-form">
         <label for="torrent">Torrent file</label>
@@ -92,6 +97,15 @@
           id="torrent"
           name="torrent"
           accept=".torrent"
+          required
+        />
+
+        <label for="filename">Output file name (server)</label>
+        <input
+          type="text"
+          id="filename"
+          name="filename"
+          placeholder="e.g. debian.iso"
           required
         />
 
@@ -104,24 +118,27 @@
     <script>
       const form = document.getElementById("upload-form");
       const button = document.getElementById("upload-btn");
-      const status = document.getElementById("status");
+      const statusBox = document.getElementById("status");
 
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        const fileInput = document.getElementById("torrent");
-        if (!fileInput.files.length) {
-          alert("Please select a .torrent file");
+        const torrentFile = document.getElementById("torrent").files[0];
+        const fileName = document.getElementById("filename").value.trim();
+
+        if (!torrentFile || !fileName) {
+          alert("Please provide both torrent file and output name");
           return;
         }
 
         const formData = new FormData();
-        formData.append("torrent", fileInput.files[0]);
+        formData.append("torrent", torrentFile);
+        formData.append("filename", fileName);
 
         button.disabled = true;
         button.textContent = "Uploading...";
-        status.style.display = "block";
-        status.textContent = "Uploading torrent...";
+        statusBox.style.display = "block";
+        statusBox.textContent = "Uploading torrent...";
 
         try {
           const res = await fetch("http://localhost:8080/upload", {
@@ -129,15 +146,18 @@
             body: formData,
           });
 
-          const text = await res.text();
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Upload failed");
 
-          if (!res.ok) throw new Error(text);
-
-          status.textContent = text;
-          status.className = "status success";
+          statusBox.className = "status success";
+          statusBox.innerHTML = `
+            <div>${data.message}</div>
+            <div><strong>Saved as:</strong> ${data.fileName}</div>
+            <div class="health">Health Score: ${data.health}%</div>
+          `;
         } catch (err) {
-          status.textContent = err.message || "Upload failed";
-          status.className = "status error";
+          statusBox.className = "status error";
+          statusBox.textContent = err.message || "Upload failed";
         } finally {
           button.disabled = false;
           button.textContent = "Upload Torrent";

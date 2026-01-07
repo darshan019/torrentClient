@@ -1,7 +1,6 @@
 package file
 
 import (
-	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -42,7 +41,7 @@ func (t *TorrentFile) RequestPeers(peerID [20]byte, port uint16) ([]peers.Peer, 
 		return nil, err
 	}
 
-	fmt.Println("URL:", t.Announce)
+	// fmt.Println("Announce URL:", t.Announce)
 
 	c := &http.Client{Timeout: 15 * time.Second}
 	res, err := c.Get(url)
@@ -57,8 +56,8 @@ func (t *TorrentFile) RequestPeers(peerID [20]byte, port uint16) ([]peers.Peer, 
 		return nil, err
 	}
 
-	fmt.Println("Raw tracker response peers field length:", len(trackerRes.Peers))
-	fmt.Printf("Raw peers field (hex): %x\n", trackerRes.Peers)
+	// fmt.Println("Raw tracker response peers field length:", len(trackerRes.Peers))
+	// fmt.Printf("Raw peers field (hex): %x\n", trackerRes.Peers)
 
 	return peers.Unmarshal([]byte(trackerRes.Peers))
 }
